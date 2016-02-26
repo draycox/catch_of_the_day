@@ -11,11 +11,19 @@ const ref = new Firebase('https://reactjs01.firebaseio.com/');
 
 @autobind
 class Inventory extends React.Component{
-  
+
   constructor() {
     super();
     this.state = {
       uid : ''
+    }
+  }
+
+  componentWillMount() {
+    var storeIdRef = ref.child(this.props.params.storeId)
+    var token = localStorage.getItem('token-' + storeIdRef.path.o[0]);
+    if(token) {
+      ref.authWithCustomToken(token, this.authHandler);
     }
   }
 
@@ -58,6 +66,16 @@ class Inventory extends React.Component{
     )
   }
 
+  logout() {
+    var storeIdRef = ref.child(this.props.params.storeId)
+    ref.unauth();
+    localStorage.removeItem('token-' + storeIdRef.path.o[0]);
+    this.setState({
+      uid : null
+    });
+  }
+
+
   renderInventory(key) {
     var linkState = this.props.linkState;
     return (
@@ -76,12 +94,12 @@ class Inventory extends React.Component{
   }
 
   render(){
-    let logoutButton = <button>Logout</button>
+    let logoutButton = <button onClick={this.logout}>Logout</button>
 
     if(!this.state.uid){
       return (<div> {this.renderLogin()} </div>)
     }
-    
+
     if(this.state.uid !== this.state.owner){
       return (
         <div>
